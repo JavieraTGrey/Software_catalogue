@@ -48,3 +48,6 @@ images, weights = (f277w, f356w, f444w), (f277w_wht, f356w_wht, f444w_wht)
 weighted = combined_images(images, weights)
 plt.imshow(weighted, vmin=-1e-09, vmax=4e-8)
 fits.writeto('weighted.fits', weighted, overwrite=True)
+fits.writeto('w.fits',
+             fits.getdata('weighted_official.fits')[4303: 10045, 5280:9455],
+             overwrite=True)
