@@ -39,14 +39,18 @@ def combined_images(images, weights):
             weights = tuple of the pixel weights for each image
     OUTPUT: combined image  """
     num = np.zeros(images[0].shape)
+    dem = np.sum(weights, axis=0)
+    dem[dem == 0] = 1
     for i in range(len(images)):
         num += images[i]*weights[i]
-    return num / np.sum(weights)
+    return num / dem
 
 
 images, weights = (f277w, f356w, f444w), (f277w_wht, f356w_wht, f444w_wht)
 weighted = combined_images(images, weights)
-plt.imshow(weighted, vmin=-1e-09, vmax=4e-8)
+stdv = np.std(weighted)
+
+plt.imshow(weighted, vmin=-stdv, vmax=5*stdv)
 fits.writeto('weighted.fits', weighted, overwrite=True)
 fits.writeto('w.fits',
              fits.getdata('weighted_official.fits')[4303: 10045, 5280:9455],
