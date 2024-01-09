@@ -51,7 +51,20 @@ weighted = combined_images(images, weights)
 stdv = np.std(weighted)
 
 plt.imshow(weighted, vmin=-stdv, vmax=5*stdv)
+
+# Save fits data
 fits.writeto('weighted.fits', weighted, overwrite=True)
 fits.writeto('w.fits',
              fits.getdata('weighted_official.fits')[4303: 10045, 5280:9455],
              overwrite=True)
+
+# Copy a filter header to the square
+
+with fits.open('Images/A2744_F356W.fits') as source_hdulist:
+    source_header = source_hdulist[0].header
+
+with fits.open('weighted.fits', mode='update') as dest_hdulist:
+    dest_hdulist[0].header.update(source_header)
+
+with fits.open('w.fits', mode='update') as dest_hdulist:
+    dest_hdulist[0].header.update(source_header)
