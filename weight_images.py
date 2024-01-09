@@ -23,12 +23,12 @@ def cut(x, y, name):
     return image, wht
 
 
-x_cut = np.array([4303, 10045])
-y_cut = np.array([5280, 9455])
+column = np.array([4303, 10045])
+line = np.array([5280, 9455])
 
-f277w, f277w_wht = cut(x_cut, y_cut, "Images/A2744_F277W")
-f356w, f356w_wht = cut(x_cut, y_cut, "Images/A2744_F356W")
-f444w, f444w_wht = cut(x_cut, y_cut, "Images/A2744_F444W")
+f277w, f277w_wht = cut(column, line, "Images/A2744_F277W")
+f356w, f356w_wht = cut(column, line, "Images/A2744_F356W")
+f444w, f444w_wht = cut(column, line, "Images/A2744_F444W")
 
 # Combinar imagenes según el peso de cada pixel
 
