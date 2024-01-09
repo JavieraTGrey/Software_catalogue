@@ -1,8 +1,30 @@
 from astropy.io import fits
-import matplotlib.pyplot as plt
 import numpy as np
 
-# Recortar imagenes por su peso
+# Cut images by input and combine filters with weight
+
+
+def cutting_images(column, line, filters):
+
+    images = []
+    weights = []
+
+    for i in filters:
+        im, im_wht = cut(column, line, i)
+        images.append(im)
+        weights.append(im_wht)
+
+    weighted = combined_images(images, weights)
+
+    fits.writeto('weighted2.fits', weighted, overwrite=True)
+
+    with fits.open(filters[0] + '.fits') as source_hdulist:
+        source_header = source_hdulist[0].header
+
+    with fits.open('weighted2.fits', mode='update') as dest_hdulist:
+        dest_hdulist[0].header.update(source_header)
+
+    return print('done')
 
 
 def cut(x, y, name):
@@ -23,13 +45,6 @@ def cut(x, y, name):
     return image, wht
 
 
-column = np.array([4303, 10045])
-line = np.array([5280, 9455])
-
-f277w, f277w_wht = cut(column, line, "Images/A2744_F277W")
-f356w, f356w_wht = cut(column, line, "Images/A2744_F356W")
-f444w, f444w_wht = cut(column, line, "Images/A2744_F444W")
-
 # Combinar imagenes según el peso de cada pixel
 
 
@@ -44,27 +59,3 @@ def combined_images(images, weights):
     for i in range(len(images)):
         num += images[i]*weights[i]
     return num / dem
-
-
-images, weights = (f277w, f356w, f444w), (f277w_wht, f356w_wht, f444w_wht)
-weighted = combined_images(images, weights)
-stdv = np.std(weighted)
-
-plt.imshow(weighted, vmin=-stdv, vmax=5*stdv)
-
-# Save fits data
-fits.writeto('weighted.fits', weighted, overwrite=True)
-fits.writeto('w.fits',
-             fits.getdata('weighted_official.fits')[4303: 10045, 5280:9455],
-             overwrite=True)
-
-# Copy a filter header to the square
-
-with fits.open('Images/A2744_F356W.fits') as source_hdulist:
-    source_header = source_hdulist[0].header
-
-with fits.open('weighted.fits', mode='update') as dest_hdulist:
-    dest_hdulist[0].header.update(source_header)
-
-with fits.open('w.fits', mode='update') as dest_hdulist:
-    dest_hdulist[0].header.update(source_header)
