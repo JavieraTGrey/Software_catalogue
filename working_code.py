@@ -2,6 +2,7 @@
 # en los otros codigos, para así despues utilizarlo sin problema!
 
 import numpy as np
+from weight_images import cutting_images
 
 
 def parse_ranges(range_str):
@@ -19,17 +20,17 @@ def parse_ranges(range_str):
 
 
 def get_user_input():
-    filters_to_combine = input("Enter filters to combine (comma-separated): ").split(',')
+    filters_to_combine = input("filters to combine (name of fits file): ")
+    filters_to_combine = filters_to_combine.split(',')
 
     # Parse cutting_edges ranges
-    cutting_edges_input = input("Enter cutting edges ranges (comma-separated): ")
+    cutting_edges_input = input("cutting edges ranges (comma-separated):")
     cutting_edges = parse_ranges(cutting_edges_input)
 
     # Create the dictionary
     user_params = {
         'filters_to_combine': filters_to_combine,
         'cutting_edges': cutting_edges,
-        # Add more parameters as needed
     }
 
     return user_params
@@ -50,6 +51,10 @@ cut = user_params['cutting_edges']
 column = np.array((cut[0]))
 line = np.array((cut[1]))
 
+filters = user_params['filters_to_combine']
+want_im = user_params['want_plot_cut_image']
 
-for i in user_params['filters_to_combine']:
-    print(i)
+cutting_images(column, line, filters)
+
+# Images/A2744_F277W,Images/A2744_F356W,Images/A2744_F444W
+# (4303, 10045), (5280, 9455)
