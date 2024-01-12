@@ -56,5 +56,6 @@ want_im = user_params['want_plot_cut_image']
 
 cutting_images(column, line, filters)
 
+
 # Images/A2744_F277W,Images/A2744_F356W,Images/A2744_F444W
 # (4303, 10045), (5280, 9455)
