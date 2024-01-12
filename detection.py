@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 
 
 weighted = fits.getdata('weighted.fits')
-w = fits.getdata('w.fits')
 
 # Reviso el thresh en data
 data, bins = np.histogram(weighted.flatten(),
@@ -60,8 +59,9 @@ real = (line_real, column_real)
 detec = (objects['y'] + line[0], objects['x'] + column[0])
 
 # Cambio a coordenadas WCS a partir de un filtro
-header = fits.getheader('weighted.fits', 0)
+header = fits.getheader('Images/A2744_F356W.fits', 0)
 wcs_world = WCS(header)
+
 detcoords = wcs_world.pixel_to_world(detec[0], detec[1])
 realcoords = wcs_world.pixel_to_world(real[0], real[1])
 
@@ -144,14 +144,7 @@ ax.set_title('Todas en ambos catalogos')
 m, s = np.mean(weighted), np.std(weighted)
 im = ax.imshow(weighted, interpolation='nearest', cmap='gray',
                vmin=m-s, vmax=m+s, origin='lower')
-line_im = objects['y']
-column_im = objects['x']
 
-select2 = (line_im < cut_line[1]) & (line_im > cut_line[0]) & (column_im > cut_column[0]) & (column_im < cut_column[1])
-
-# Vuelvo al origen de la imagen
-line_im = line_im[select2] - cut_line[0]
-column_im = column_im[select2] - cut_column[0]
 ax.scatter(column2, line2, color='red', marker='*', label='UNCOVER')
 ax.scatter(column4, line4, color='blue', marker='x', label='Toro')
 # ax.scatter(column_im, line_im, color='yellow', marker='+', label='Check')
