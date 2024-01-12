@@ -16,7 +16,7 @@ def cutting_images(column, line, filters):
 
     weighted = combined_images(images, weights)
 
-    fits.writeto('weighted2.fits', weighted, overwrite=True)
+    fits.writeto('weighted.fits', weighted, overwrite=True)
 
     with fits.open(filters[0] + '.fits') as source_hdulist:
         source_header = source_hdulist[0].header
