@@ -139,3 +139,6 @@ fwhm = 3.5
 stop = 0.005
 thresh = 1.2
 objects, std_dv = detection('weighted.fits', stop, fwhm, thresh)
+
+# ----------
+# Trying with CEERS DATA
