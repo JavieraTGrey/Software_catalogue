@@ -11,7 +11,7 @@ def gaussian(x, amplitude, mean, std_dev):
             amplitude: Function amplitude
             mean: Expected mean value
             std_dev: Value for standard deviation
-    OUTPUT: 
+    OUTPUT:
             A*e^(-(x-mean)**2/(2*std_dev**2))
     '''
     return amplitude * np.exp(-(x - mean)**2 / (2 * std_dev**2))
@@ -26,7 +26,7 @@ def bkg_stimate(data, bkg_func, stop):
 
     OUTPUT: params : fitted parameters of the bkg_func
     """
-    # Reviso el thresh en data
+
     dato, bins = np.histogram(data.flatten(),
                               bins=np.linspace(-0.1, stop, 300))
 
