@@ -63,6 +63,8 @@ def detection(path, stop, fwhm, thresh, bkg_func=gaussian, err=None,
     data = data.byteswap().newbyteorder()
     sep.set_extract_pixstack(10000000)
     if err is None:
+        params = bkg_stimate(data, bkg_func, stop)
+        amplitude, mean, std_dv = params
         if segmentation_map is False:
             objects = sep.extract(data, thresh=thresh, minarea=minarea,
                                   err=std_dv, mask=mask,
