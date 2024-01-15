@@ -59,3 +59,9 @@ cutting_images(column, line, filters)
 
 # Images/A2744_F277W,Images/A2744_F356W,Images/A2744_F444W
 # (4303, 10045), (5280, 9455)
+
+# names = ('weighted', 'UNCOVER_DR2_LW_SUPER_catalog', 'Images/A2744_F356W')
+# ceros = np.array([[(5280, 9455), (4303, 10045)], [(3410, 4138), (1045, 1688)]])
+# fwhm = 3.5
+# max_sep = 0.15*u.arcsec
+# explore_and_graph(names, ceros, fwhm, max_sep)
