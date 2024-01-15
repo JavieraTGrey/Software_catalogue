@@ -3,46 +3,55 @@ from astropy.wcs import WCS
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
-from detection import detection
 from astropy.io import fits
+from detection import detection
 
 
-def match(list1, list2):
-    # Compara deteccion entre ambos
-    index, sep2d, dist3d = match_coordinates_sky(list1, list2)
-    # reordeno realcoords
+def match(detcoord, catalogcoord):
+    """Matches every detection to the closest detection in the catalog.
+    """
+    index, sep2d, _ = match_coordinates_sky(detcoord, catalogcoord)
     return index, sep2d
 
 
 def sep_constraint(sep, constraint):
+    ''' Separation constraint on the separation list between sources.'''
     over = sep > constraint
     under = sep < constraint
     return under, over
 
 
 def cut_catalog(matchcoord, catalogcoord, index, sep):
+    '''Cut the catalog according to the match index and the
+    separation constraint given'''
     catalog = catalogcoord[index[sep]]
     match = matchcoord[sep]
     return catalog, match
 
 
 def catalog_comparison(max_sep, matchcoord, catalogcoord):
+    """ Compare the catalog matches and the detections by a separation
+        constraint. The function looks for the matches between the catalog
+        and the detections, and by the given constraint looks for the perfect
+        matches, the detections without matches, and the catalog sources
+        that are unmacthed.
+    """
     index, sep1 = match(matchcoord, catalogcoord)
     index2, sep2 = match(catalogcoord, matchcoord)
 
     under_sep, over_sep = sep_constraint(sep1, max_sep)
-    under_switch, over_switch = sep_constraint(sep2, max_sep)
+    _, over_switch = sep_constraint(sep2, max_sep)
 
-    # whole catalog
+    # All matches
     catalog_match = catalogcoord[index]
 
-    # Busca match perfecto!
+    # Perfect match
     under = cut_catalog(matchcoord, catalogcoord, index, under_sep)
 
-    # Busca las que estan en mi catalogo pero no en UNCOVER
+    # Detections without matches
     over = cut_catalog(matchcoord, catalogcoord, index, over_sep)
 
-    # Busca las que estan en UNCOVER pero no en Catalogo
+    # Catalog sources unmatched with detections
     unmatched = cut_catalog(catalogcoord, matchcoord, index2, over_switch)
 
     return catalog_match, under, over, unmatched
@@ -105,16 +114,16 @@ def get_data(weighted_image, catalog_fits, example_filter):
 
     header = fits.getheader(example_filter + '.fits', 0)
     wcs_world = WCS(header)
-    return weighted, real, wcs_world
+    return weighted, real, wcs_world, weighted_image
 
 
-def explore_square(names, ceros, fwhm, max_sep):
+def explore_square(names, ceros, stop, fwhm, thresh, max_sep):
     weighted, catalog, filter_example = names
-    weighted, real, wcs_world = get_data(weighted, catalog, filter_example)
+    weighted, real, wcs_world, weighted_image = get_data(weighted, catalog, filter_example)
 
     weighted_cero, square_cero = ceros
 
-    objects, std_dv = detection(weighted, fwhm)
+    objects, std_dv = detection(weighted_image, stop, fwhm, thresh)
     detec = offset(weighted_cero, objects['x'], objects['y'], sign='p')
 
     # Convertir a ra/dec usando UNCOVER, cualquier filtro
@@ -169,6 +178,15 @@ def graph(a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv):
     return plt.show()
 
 
-def explore_and_graph(names, ceros, fwhm, max_sep):
-    a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv = explore_square(names, ceros, fwhm, max_sep)
+def explore_and_graph(names, ceros, stop, fwhm, thresh, max_sep):
+    a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv = explore_square(names, ceros, stop, fwhm, thresh, max_sep)
     return graph(a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv)
+
+
+names = ('weighted', 'UNCOVER_DR2_LW_SUPER_catalog', 'Images/A2744_F356W')
+ceros = np.array([[(5280, 9455), (4303, 10045)], [(3410, 4138), (1045, 1688)]])
+fwhm = 3.5
+thresh = 1.2
+stop = 0.005
+max_sep = 0.15*u.arcsec
+explore_and_graph(names, ceros, stop, fwhm, thresh, max_sep)
