@@ -1,96 +1,43 @@
-from astropy.io import fits
-from astropy.convolution import Gaussian2DKernel
-from astropy.coordinates.matching import match_coordinates_sky
-from astropy.wcs import WCS
+import astropy.units as u
 import numpy as np
-from scipy.optimize import curve_fit
-import sep
-import matplotlib.pyplot as plt
+import pyds9
+from detection import explore_square
+import os
 
+names = ('weighted', 'UNCOVER_DR2_LW_SUPER_catalog', 'Images/A2744_F356W')
+ceros = np.array([[(5280, 9455), (4303, 10045)], [(3410, 4138), (1045, 1688)]])
+fwhm = 3.5
+max_sep = 0.15*u.arcsec
 
-weighted = fits.getdata('weighted.fits')
+a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv = explore_square(names, ceros, fwhm, max_sep)
 
-# Reviso el thresh en data
-data, bins = np.histogram(weighted.flatten(),
-                          bins=np.linspace(-0.1, 0.005, 300))
+over = a, b, c, d
+under = e, f, g, h
+unmatched = j, k, n, o
+all_detec = p, q, r, t
 
+# Open a connection to DS9
+ds9_path = '/home/javivi/DS9/ds9'
+os.system(ds9_path + ' &')
+ds9 = pyds9.DS9()
 
-def gaussian(x, amplitude, mean, std_dev):
-    return amplitude * np.exp(-(x - mean)**2 / (2 * std_dev**2))
+# Display the FITS image in DS9
+ds9.set_np2arr(weighted)
 
+# Define your point detections as DS9 regions (example: circles)
+# Replace these with your actual coordinates and radius
+point_detections = [
+    {'type': 'circle', 'coords': (a, b), 'radius': 5, 'color': 'green'},
+    {'type': 'circle', 'coords': (c, d), 'radius': 5, 'color': 'red'},
+    # Add more detections as needed
+]
 
-params, conv = curve_fit(gaussian, bins[:-1], data)
-amplitude, mean, std_dv = params
+# Send the DS9 regions to DS9
+for detection in point_detections:
+    region_str = f"{detection['type']}({detection['coords'][0]}, {detection['coords'][1]}, {detection['radius']})"
+    ds9.set(region_str, color=detection['color'])
 
-
-kernel = np.array(Gaussian2DKernel(3.5/2.35))
-
-# Detección
-weighted = weighted.byteswap().newbyteorder()
-sep.set_extract_pixstack(10000000)
-
-objects = sep.extract(weighted, thresh=1.2*std_dv, minarea=3,
-                      deblend_cont=0.0001, clean=False,
-                      clean_param=1.0,
-                      filter_kernel=kernel,
-                      filter_type='matched')
-# catalog reading
-cat = fits.open('UNCOVER_DR2_LW_SUPER_catalog.fits')
-data = cat[1].data
-
-# ordenado en columna, fila
-real = (data['x'], data['y'])
-
-# Paso mi deteccion a UNCOVER, (imagen original)
-line = np.array([4303, 10045])
-column = np.array([5280, 9455])
-
-detec = (objects['x'] + column[0], objects['y'] + line[0])
-
-# Convertir a ra/dec usando UNCOVER, cualquier filtro
-header = fits.getheader('Images/A2744_F356W.fits', 0)
-wcs_world = WCS(header)
-detcoords = wcs_world.pixel_to_world(detec[0], detec[1])
-realcoords = wcs_world.pixel_to_world(real[0], real[1])
-
-# Compara deteccion entre ambos
-index, sep2d, dist3d = match_coordinates_sky(detcoords, realcoords)
-# reordeno realcoords
-catalog_match = realcoords[index]
-
-# Buscamos ahora el recorte
-# Pasamos de ra/dec a pixeles con wcs de UNCOVER
-UN_column, UN_line = wcs_world.world_to_pixel(catalog_match)
-TOR_column, TOR_line = wcs_world.world_to_pixel(detcoords)
-
-# Corregimos al cero de la imagen weighted
-UN_column_w, UN_line_w = UN_column - column[0], UN_line - line[0]
-TOR_column_w, TOR_line_w = TOR_column - column[0], TOR_line - line[0]
-
-# Ahora buscamos el cuadrado seleccionado
-
-sq_line = np.array([1045, 1688])
-sq_column = np.array([3410, 4138])
-
-select_UN = (UN_column_w > sq_column[0]) & (UN_column_w < sq_column[1]) & (UN_line_w > sq_line[0]) & (UN_line_w < sq_line[1])
-select_TOR = (TOR_column_w > sq_column[0]) & (TOR_column_w < sq_column[1]) & (TOR_line_w > sq_line[0]) & (TOR_line_w < sq_line[1])
-
-UN_column_sq, UN_line_sq = UN_column_w[select_UN], UN_line_w[select_UN]
-TOR_column_sq, TOR_line_sq = TOR_column_w[select_TOR], TOR_line_w[select_TOR]
-
-# Cambiamos a cero de cuadrado
-UN_column_sq, UN_line_sq = UN_column_sq - sq_column[0], UN_line_sq - sq_line[0]
-TOR_column_sq, TOR_line_sq = TOR_column_sq - sq_column[0], TOR_line_sq - sq_line[0]
-
-# Ploteo
-weighted = weighted[1045:1688, 3410:4138]
-fig, ax = plt.subplots()
-ax.set_title('Todas en ambos catalogos')
-
-m, s = np.mean(weighted), np.std(weighted)
-im = ax.imshow(weighted, interpolation='nearest', cmap='gray',
-               vmin=m-s, vmax=m+s, origin='lower')
-
-ax.scatter(UN_column_sq, UN_line_sq, color='red', marker='*', label='UNCOVER')
-ax.scatter(TOR_column_sq, TOR_line_sq, color='blue', marker='x', label='Toro')
-ax.plot([UN_column_sq[0], UN_line_sq[0]], [TOR_column_sq[0], TOR_line_sq[0]], color='green')
+# Wait for the user to close DS9
+ds9.set("zoom to fit")
+ds9.set("tile")
+ds9.set("raise")
