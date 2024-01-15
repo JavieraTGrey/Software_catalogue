@@ -34,7 +34,7 @@ def bkg_stimate(data, bkg_func, stop):
     return params
 
 
-def detection(path, stop, fwhm, thresh, bkg_func=gaussian,
+def detection(path, stop, fwhm, thresh, bkg_func=gaussian, err=None,
               kernel_func=Gaussian2DKernel, mask=None,
               minarea=3, deblend_count=0.0001, deblend_nthresh=32,
               clean=False, clean_param=1.0, filter_type='matched',
@@ -57,34 +57,53 @@ def detection(path, stop, fwhm, thresh, bkg_func=gaussian,
             std_dv: STD fitted for the bkg_func
     """
     data = fits.getdata(path)
-    params = bkg_stimate(data, bkg_func, stop)
-    amplitude, mean, std_dv = params
     kernel = np.array(kernel_func(fwhm/2.35))
 
     # BIG IMAGE
     data = data.byteswap().newbyteorder()
     sep.set_extract_pixstack(10000000)
-
-    if segmentation_map is False:
-        objects = sep.extract(data, thresh=thresh, minarea=minarea,
-                              err=std_dv, mask=mask,
-                              deblend_cont=deblend_count, clean=clean,
-                              clean_param=clean_param,
-                              filter_kernel=kernel,
-                              filter_type=filter_type,
-                              deblend_nthresh=deblend_nthresh,
-                              segmentation_map=False)
-        return objects, std_dv
+    if err is None:
+        if segmentation_map is False:
+            objects = sep.extract(data, thresh=thresh, minarea=minarea,
+                                  err=std_dv, mask=mask,
+                                  deblend_cont=deblend_count, clean=clean,
+                                  clean_param=clean_param,
+                                  filter_kernel=kernel,
+                                  filter_type=filter_type,
+                                  deblend_nthresh=deblend_nthresh,
+                                  segmentation_map=False)
+            return objects, std_dv
+        else:
+            objects, seg = sep.extract(data, thresh=thresh, minarea=minarea,
+                                       err=std_dv, mask=mask,
+                                       deblend_cont=deblend_count, clean=clean,
+                                       clean_param=clean_param,
+                                       filter_kernel=kernel,
+                                       filter_type=filter_type,
+                                       deblend_nthresh=deblend_nthresh,
+                                       segmentation_map=True)
+            return objects, seg, std_dv
     else:
-        objects, seg = sep.extract(data, thresh=thresh, minarea=minarea,
-                                   err=std_dv, mask=mask,
-                                   deblend_cont=deblend_count, clean=clean,
-                                   clean_param=clean_param,
-                                   filter_kernel=kernel,
-                                   filter_type=filter_type,
-                                   deblend_nthresh=deblend_nthresh,
-                                   segmentation_map=True)
-        return objects, seg, std_dv
+        if segmentation_map is False:
+            objects = sep.extract(data, thresh=thresh, minarea=minarea,
+                                  err=err, mask=mask,
+                                  deblend_cont=deblend_count, clean=clean,
+                                  clean_param=clean_param,
+                                  filter_kernel=kernel,
+                                  filter_type=filter_type,
+                                  deblend_nthresh=deblend_nthresh,
+                                  segmentation_map=False)
+            return objects, std_dv
+        else:
+            objects, seg = sep.extract(data, thresh=thresh, minarea=minarea,
+                                       err=err, mask=mask,
+                                       deblend_cont=deblend_count, clean=clean,
+                                       clean_param=clean_param,
+                                       filter_kernel=kernel,
+                                       filter_type=filter_type,
+                                       deblend_nthresh=deblend_nthresh,
+                                       segmentation_map=True)
+            return objects, seg, std_dv
 
 
 fwhm = 3.5
