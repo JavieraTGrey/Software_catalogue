@@ -9,18 +9,18 @@ def gaussian(x, amplitude, mean, std_dev):
     return amplitude * np.exp(-(x - mean)**2 / (2 * std_dev**2))
 
 
-def bkg_stimate(data):
+def bkg_stimate(data, stop):
     # Reviso el thresh en data
     dato, bins = np.histogram(data.flatten(),
-                              bins=np.linspace(-0.1, 0.005, 300))
+                              bins=np.linspace(-0.1, stop, 300))
 
     params, conv = curve_fit(gaussian, bins[:-1], dato)
     amplitude, mean, std_dv = params
     return amplitude, mean, std_dv
 
 
-def detection(data, fwhm):
-    amplitude, mean, std_dv = bkg_stimate(data)
+def detection(data, fwhm, stop):
+    amplitude, mean, std_dv = bkg_stimate(data, stop)
     kernel = np.array(Gaussian2DKernel(fwhm/2.35))
 
     # Detection
@@ -37,4 +37,5 @@ def detection(data, fwhm):
 
 data = fits.getdata('weighted.fits')
 fwhm = 3.5
-objects, std_dv = detection(data, fwhm)
+stop = 0.005
+objects, std_dv = detection(data, fwhm, stop)
