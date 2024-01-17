@@ -1,4 +1,3 @@
-# %%
 from astropy.coordinates.matching import match_coordinates_sky
 from astropy.wcs import WCS
 import astropy.units as u
