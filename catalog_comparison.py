@@ -1,3 +1,4 @@
+# %%
 from astropy.coordinates.matching import match_coordinates_sky
 from astropy.wcs import WCS
 import astropy.units as u
@@ -57,21 +58,26 @@ def catalog_comparison(max_sep, matchcoord, catalogcoord):
     return catalog_match, under, over, unmatched
 
 
-def offset(ceros, column, line, sign):
-    offset_column, offset_line = ceros
-    if sign == 'm':
+def offset(base_coords, coords_to_offset, offset_sign='-'):
+    """Moves a set of coordinates according to a given offset"""
+    offset_column, offset_line = base_coords
+    column, line = coords_to_offset
+
+    if offset_sign == '+':
+        new_column, new_line = column + offset_column[0], line + offset_line[0]
+    elif offset_sign == '-':
         new_column, new_line = column - offset_column[0], line - offset_line[0]
     else:
-        new_column, new_line = column + offset_column[0], line + offset_line[0]
+        raise ValueError("Invalid offset sign. Use '+' or '-'.")
 
     return new_column, new_line
 
 
-def square_selection(column, line, cero):
-    # Ahora buscamos el cuadrado seleccionado
-
-    column_select = (column > cero[0][0]) & (column < cero[0][1])
-    line_select = (line > cero[1][0]) & (line < cero[1][1])
+def square_selection(column, line, square_limit):
+    """Creates a boolean array for coordinates within the specified square.
+    """
+    column_select = (column > square_limit[0][0]) & (column < square_limit[0][1])
+    line_select = (line > square_limit[1][0]) & (line < square_limit[1][1])
 
     select_sq = column_select & line_select
 
@@ -90,8 +96,10 @@ def get_square_on_image(detcoord, realcoord, first_cero, second_cero, wcs_wrd):
     d_column, d_line = wcs_wrd.world_to_pixel(detcoord)
 
     # Corregimos al cero de la imagen weighted
-    r_column_w, r_line_w = offset(first_cero, r_column, r_line, 'm')
-    d_column_w, d_line_w = offset(first_cero, d_column, d_line, 'm')
+    r_object = r_column, r_line
+    d_object = d_column, d_line
+    r_column_w, r_line_w = offset(first_cero, r_object, '-')
+    d_column_w, d_line_w = offset(first_cero, d_object, '-')
 
     select_sq = square_selection(r_column_w, r_line_w, second_cero)
 
@@ -99,8 +107,10 @@ def get_square_on_image(detcoord, realcoord, first_cero, second_cero, wcs_wrd):
     r_column_sq, r_line_sq = square_cut(r_column_w, r_line_w, select_sq)
 
     # Cambiamos a cero de cuadradoselect_UN
-    r_column_sq, r_line_sq = offset(second_cero, r_column_sq, r_line_sq, 'm')
-    d_column_sq, d_line_sq = offset(second_cero, d_column_sq, d_line_sq, 'm')
+    r_object_square = r_column_sq, r_line_sq
+    d_object_square = d_column_sq, d_line_sq
+    r_column_sq, r_line_sq = offset(second_cero, r_object_square, '-')
+    d_column_sq, d_line_sq = offset(second_cero, d_object_square, '-')
 
     return r_column_sq, r_line_sq, d_column_sq, d_line_sq
 
@@ -123,8 +133,9 @@ def explore_square(names, ceros, stop, fwhm, thresh, max_sep):
 
     weighted_cero, square_cero = ceros
 
-    objects, std_dv = detection(weighted_image, stop, fwhm, thresh)
-    detec = offset(weighted_cero, objects['x'], objects['y'], sign='p')
+    objects, std_dv = detection(weighted_image + '.fits', stop, fwhm, thresh)
+    objects = objects['x'], objects['y']
+    detec = offset(weighted_cero, objects, '+')
 
     # Convertir a ra/dec usando UNCOVER, cualquier filtro
 
@@ -135,9 +146,9 @@ def explore_square(names, ceros, stop, fwhm, thresh, max_sep):
     weighted = weighted[column[0]:column[1], line[0]:line[1]]
 
     catalog_match, under, over, unmatched = catalog_comparison(max_sep, detcoords, realcoords)
-    detcoords_under, match_under = under
-    detcoords_over, match_over = over
-    unmatch_det, unmatch_real = unmatched
+    match_under, detcoords_under = under
+    match_over,  detcoords_over = over
+    unmatch_real, unmatch_det = unmatched
 
     a, b, c, d = get_square_on_image(detcoords_under, match_under, weighted_cero, square_cero, wcs_world)
     e, f, g, h = get_square_on_image(detcoords_over, match_over, weighted_cero, square_cero, wcs_world)
@@ -189,4 +200,4 @@ fwhm = 3.5
 thresh = 1.2
 stop = 0.005
 max_sep = 0.15*u.arcsec
-explore_and_graph(names, ceros, stop, fwhm, thresh, max_sep)
+# explore_and_graph(names, ceros, stop, fwhm, thresh, max_sep)
