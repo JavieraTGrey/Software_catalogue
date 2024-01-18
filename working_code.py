@@ -48,20 +48,20 @@ if __name__ == "__main__":
 # Now lets start the cutting part
 print('Cutting files...')
 cut = user_params['cutting_edges']
-column = np.array((cut[1]))
-line = np.array((cut[0]))
+column = np.array((cut[0]))
+line = np.array((cut[1]))
 
 filters = user_params['filters_to_combine']
-want_im = user_params['want_plot_cut_image']
+want_im = user_params['cutting_edges']
 
 cutting_images(line, column, filters)
 
 
 # Images/A2744_F277W,Images/A2744_F356W,Images/A2744_F444W
-# (4303, 10045), (5280, 9455)
+# (4303, 10045),(5280, 9455)
 
 # names = ('weighted', 'UNCOVER_DR2_LW_SUPER_catalog', 'Images/A2744_F356W')
-# ceros = np.array([[(5280, 9455), (4303, 10045)], [(3410, 4138), (1045, 1688)]])
+# ceros = np.array([[(4303, 10045), (5280, 9455)], [(4477, 5103), (76, 668)]])
 # fwhm = 3.5
 # max_sep = 0.15*u.arcsec
 # explore_and_graph(names, ceros, fwhm, max_sep)
