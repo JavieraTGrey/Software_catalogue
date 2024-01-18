@@ -14,10 +14,22 @@ def cutting_images(line, column, filters):
         images.append(im)
         weights.append(im_wht)
 
-    weighted = combined_images(images, weights)
+    weighted, weight_err = combined_images(images, weights)
 
-    fits.writeto('weighted.fits', weighted, overwrite=True)
+    avgout = 'weighted.fits'
+    errout = 'weighted_err.fits'
 
+    fits.writeto(avgout, weighted, overwrite=True)
+    fits.writeto(errout, weight_err, overwrite=True)
+
+    with fits.open(filters[0] + '.fits') as source_hdulist:
+        source_header = source_hdulist[0].header
+
+    with fits.open(avgout, mode='update') as dest_hdulist:
+        dest_hdulist[0].header.update(source_header)
+
+    with fits.open(errout, mode='update') as dest_hdulist:
+        dest_hdulist[0].header.update(source_header)
     return print('done')
 
 
@@ -46,9 +58,26 @@ def combined_images(images, weights):
     INPUT : images = tuple of the astronomical images
             weights = tuple of the pixel weights for each image
     OUTPUT: combined image  """
-    num = np.zeros(images[0].shape)
-    dem = np.sum(weights, axis=0)
-    dem[dem == 0] = 1
+
     for i in range(len(images)):
-        num += images[i]*weights[i]
-    return num / dem
+        if i == 0:
+            raw_img = (images[i]) * weights[i]
+            num = raw_img
+            dem = weights[i]
+            del raw_img
+        else:
+            raw_img = (images[i]) * weights[i]
+            num += raw_img
+            dem += weights[i]
+            del raw_img
+
+    # Optimal average
+    optavg = np.where(dem == 0., 0., num / dem)
+
+    # Optimal error
+    opterr = np.sqrt(np.where(dem <= 0, 0., 1. / dem))
+
+    # Optimal noise-equalized by SNR
+    comb = optavg / opterr
+
+    return comb, opterr

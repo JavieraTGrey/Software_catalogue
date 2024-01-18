@@ -20,7 +20,7 @@ def gaussian(x, amplitude, mean, std_dev):
     return amplitude * np.exp(-(x - mean)**2 / (2 * std_dev**2))
 
 
-def bkg_estimate(data, bkg_func=None, stop=0.005):
+def bkg_estimate(data, init, stop, bkg_func=None):
     """Estimate background using a provided function.
 
     INPUT:
@@ -38,14 +38,14 @@ def bkg_estimate(data, bkg_func=None, stop=0.005):
 
     # Calculate histogram
     hist_data, bins = np.histogram(data.flatten(),
-                                   bins=np.linspace(-0.1, stop, 300))
+                                   bins=np.linspace(init, stop, 300))
 
     # Fit background function to the histogram
-    params, _ = curve_fit(bkg_func, bins[:-1], hist_data)
+    params, _ = curve_fit(bkg_func, bins[:-1], hist_data,  maxfev=5000)
     return params
 
 
-def detection(path, stop, fwhm, thresh,
+def detection(path, init, stop, fwhm, thresh,
               bkg_func=gaussian, err=None,
               kernel_func=Gaussian2DKernel, mask=None,
               minarea=3, deblend_count=0.0001, deblend_nthresh=32,
@@ -90,9 +90,10 @@ def detection(path, stop, fwhm, thresh,
     data = data.byteswap().newbyteorder()
     sep.set_extract_pixstack(10000000)
     if err is None:
-        params = bkg_estimate(data, bkg_func, stop)
+        params = bkg_estimate(data, init, stop, bkg_func)
         amplitude, mean, std_dv = params
         if segmentation_map is False:
+            sep.set_extract_pixstack(10000000)
             objects = sep.extract(data, thresh=thresh, minarea=minarea,
                                   err=std_dv, mask=mask,
                                   deblend_cont=deblend_count, clean=clean,
@@ -103,6 +104,7 @@ def detection(path, stop, fwhm, thresh,
                                   segmentation_map=False)
             return objects, std_dv
         else:
+            sep.set_extract_pixstack(10000000)
             objects, seg = sep.extract(data, thresh=thresh, minarea=minarea,
                                        err=std_dv, mask=mask,
                                        deblend_cont=deblend_count, clean=clean,
@@ -114,6 +116,7 @@ def detection(path, stop, fwhm, thresh,
             return objects, seg, std_dv
     else:
         if segmentation_map is False:
+            sep.set_extract_pixstack(10000000)
             objects = sep.extract(data, thresh=thresh, minarea=minarea,
                                   err=err, mask=mask,
                                   deblend_cont=deblend_count, clean=clean,
@@ -124,6 +127,7 @@ def detection(path, stop, fwhm, thresh,
                                   segmentation_map=False)
             return objects, std_dv
         else:
+            sep.set_extract_pixstack(10000000)
             objects, seg = sep.extract(data, thresh=thresh, minarea=minarea,
                                        err=err, mask=mask,
                                        deblend_cont=deblend_count, clean=clean,
@@ -136,9 +140,30 @@ def detection(path, stop, fwhm, thresh,
 
 
 fwhm = 3.5
-stop = 0.005
+init = -5
+stop = 1
 thresh = 1.2
-objects, std_dv = detection('weighted.fits', stop, fwhm, thresh)
+# objects, std_dv = detection('weighted.fits', init, stop, fwhm, thresh)
 
+# TO-CHECK
+
+# weighted = fits.getdata('weighted.fits')
+# import pyds9
+# import matplotlib.pyplot as plt
+# plt.hist(weighted.flatten(), bins=np.linspace(-5, 2.5, 100))
+# plt.hist(weighted.flatten(), bins=np.linspace(-5, 1, 100))
+
+
+# ds9 = pyds9.DS9()
+# weighted = fits.getdata('weighted.fits')
+# ds9.set_np2arr(weighted)
+# ds9.set("scale log")
+# ds9.set('scale limits 0 10')
+# ds9.set("zoom to fit")
+
+# for i in range(len(objects['x'])):
+#     ds9.set("region command {cross point " + str(objects['x'][i]) + " " + str(objects['y'][i]) + " }")
+#     ds9.set('region select all')
+#     ds9.set('region color Red')
 # ----------
 # Trying with CEERS DATA

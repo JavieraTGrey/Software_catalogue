@@ -72,11 +72,11 @@ def offset(base_coords, coords_to_offset, offset_sign='-'):
     return new_column, new_line
 
 
-def square_selection(column, line, square_limit):
+def square_selection(column, line, square_lim):
     """Creates a boolean array for coordinates within the specified square.
     """
-    column_select = (column > square_limit[0][0]) & (column < square_limit[0][1])
-    line_select = (line > square_limit[1][0]) & (line < square_limit[1][1])
+    column_select = (column > square_lim[0][0]) & (column < square_lim[0][1])
+    line_select = (line > square_lim[1][0]) & (line < square_lim[1][1])
 
     select_sq = column_select & line_select
 
@@ -84,17 +84,19 @@ def square_selection(column, line, square_limit):
 
 
 def square_cut(column, line, select_sq):
+    """ Select the coordinates within the specified square"""
     column_sq, line_sq = column[select_sq], line[select_sq]
     return column_sq, line_sq
 
 
 def get_square_on_image(detcoord, realcoord, first_cero, second_cero, wcs_wrd):
-    # Buscamos ahora el recorte
-    # Pasamos de ra/dec a pixeles con wcs de UNCOVER
+    """Gets the selected square on the detection and catalog coordinates """
+
+    # Transform the ICRS coordinates to pixel
     r_column, r_line = wcs_wrd.world_to_pixel(realcoord)
     d_column, d_line = wcs_wrd.world_to_pixel(detcoord)
 
-    # Corregimos al cero de la imagen weighted
+    # MOves the (0,0) pixel to weighted's zero
     r_object = r_column, r_line
     d_object = d_column, d_line
     r_column_w, r_line_w = offset(first_cero, r_object, '-')
@@ -102,10 +104,11 @@ def get_square_on_image(detcoord, realcoord, first_cero, second_cero, wcs_wrd):
 
     select_sq = square_selection(r_column_w, r_line_w, second_cero)
 
+    # Select the square without changing their pixel values
     d_column_sq, d_line_sq = square_cut(d_column_w, d_line_w, select_sq)
     r_column_sq, r_line_sq = square_cut(r_column_w, r_line_w, select_sq)
 
-    # Cambiamos a cero de cuadradoselect_UN
+    #Changes zero from the square to (0,0)
     r_object_square = r_column_sq, r_line_sq
     d_object_square = d_column_sq, d_line_sq
     r_column_sq, r_line_sq = offset(second_cero, r_object_square, '-')
@@ -126,13 +129,13 @@ def get_data(weighted_image, catalog_fits, example_filter):
     return weighted, real, wcs_world, weighted_image
 
 
-def explore_square(names, ceros, stop, fwhm, thresh, max_sep):
+def explore_square(names, ceros, init, stop, fwhm, thresh, max_sep):
     weighted, catalog, filter_example = names
     weighted, real, wcs_world, weighted_image = get_data(weighted, catalog, filter_example)
 
     weighted_cero, square_cero = ceros
 
-    objects, std_dv = detection(weighted_image + '.fits', stop, fwhm, thresh)
+    objects, std_dv = detection(weighted_image + '.fits', init, stop, fwhm, thresh)
     objects = objects['x'], objects['y']
     detec = offset(weighted_cero, objects, '+')
 
@@ -149,6 +152,7 @@ def explore_square(names, ceros, stop, fwhm, thresh, max_sep):
     match_over,  detcoords_over = over
     unmatch_real, unmatch_det = unmatched
 
+    # catalog_0, catalog_1, matched_0, matched_1
     a, b, c, d = get_square_on_image(detcoords_under, match_under, weighted_cero, square_cero, wcs_world)
     e, f, g, h = get_square_on_image(detcoords_over, match_over, weighted_cero, square_cero, wcs_world)
     j, k, n, o = get_square_on_image(detcoords, catalog_match, weighted_cero, square_cero, wcs_world)
@@ -179,24 +183,25 @@ def graph(a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv):
                vmin=m-s, vmax=m+s, origin='lower')
     ax4.scatter(j, k, color='red', marker='*', label='UNCOVER')
     ax4.scatter(n, o,  color='blue', marker='x', label='Toro')
-    ax4.scatter(p, q, color='red', marker='*')
+    ax4.scatter(r, t, color='red', marker='*')
 
     ax3.set_title('UNCOVER detection unmatched')
     ax3.imshow(weighted, interpolation='nearest', cmap='gray',
                vmin=m-s, vmax=m+s, origin='lower')
-    ax3.scatter(p, q, color='red', marker='*')
+    ax3.scatter(r, t, color='red', marker='*')
     return plt.show()
 
 
-def explore_and_graph(names, ceros, stop, fwhm, thresh, max_sep):
-    a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv = explore_square(names, ceros, stop, fwhm, thresh, max_sep)
+def explore_and_graph(names, ceros, init, stop, fwhm, thresh, max_sep):
+    a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv = explore_square(names, ceros, init, stop, fwhm, thresh, max_sep)
     return graph(a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv)
 
 
 names = ('weighted', 'UNCOVER_DR2_LW_SUPER_catalog', 'Images/A2744_F356W')
 ceros = np.array([[(4303, 10045), (5280, 9455)], [(4477, 5103), (76, 668)]])
 fwhm = 3.5
+init = -5
+stop = 1
 thresh = 1.2
-stop = 0.005
 max_sep = 0.15*u.arcsec
-# explore_and_graph(names, ceros, stop, fwhm, thresh, max_sep)
+# explore_and_graph(names, ceros, init, stop, fwhm, thresh, max_sep)
