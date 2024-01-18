@@ -18,12 +18,6 @@ def cutting_images(column, line, filters):
 
     fits.writeto('weighted.fits', weighted, overwrite=True)
 
-    with fits.open(filters[0] + '.fits') as source_hdulist:
-        source_header = source_hdulist[0].header
-
-    with fits.open('weighted2.fits', mode='update') as dest_hdulist:
-        dest_hdulist[0].header.update(source_header)
-
     return print('done')
 
 

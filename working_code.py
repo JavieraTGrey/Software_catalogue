@@ -48,13 +48,13 @@ if __name__ == "__main__":
 # Now lets start the cutting part
 print('Cutting files...')
 cut = user_params['cutting_edges']
-column = np.array((cut[0]))
-line = np.array((cut[1]))
+column = np.array((cut[1]))
+line = np.array((cut[0]))
 
 filters = user_params['filters_to_combine']
 want_im = user_params['want_plot_cut_image']
 
-cutting_images(column, line, filters)
+cutting_images(line, column, filters)
 
 
 # Images/A2744_F277W,Images/A2744_F356W,Images/A2744_F444W

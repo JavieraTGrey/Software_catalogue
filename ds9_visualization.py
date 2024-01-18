@@ -4,7 +4,7 @@ import pyds9
 from catalog_comparison import explore_square
 
 names = ('weighted', 'UNCOVER_DR2_LW_SUPER_catalog', 'Images/A2744_F356W')
-ceros = np.array([[(5280, 9455), (4303, 10045)], [(3410, 4138), (1045, 1688)]])
+ceros = np.array([[(4303, 10045), (5280, 9455)], [(4477, 5095), (76, 655)]])
 fwhm = 3.5
 thresh = 1.2
 stop = 0.005
@@ -16,7 +16,7 @@ over = a, b, c, d
 under = e, f, g, h
 unmatched = j, k, n, o
 all_detec = p, q, r, t
-r
+
 # Open a connection to DS9
 ds9 = pyds9.DS9()
 ds9.set_np2arr(weighted)
@@ -50,7 +50,7 @@ ds9.set("scale log")
 ds9.set('scale limits 0 10')
 ds9.set("zoom to fit")
 for i in range(len(p)):
-    ds9.set("region command {cross point " + str(p[i]) + " " + str(q[i]) + " }")
+    ds9.set("region command {cross point " + str(r[i]) + " " + str(t[i]) + " }")
     ds9.set('region select all')
     ds9.set('region color Red')
 
@@ -66,7 +66,7 @@ for i in range(len(j)):
     ds9.set('region select all')
     ds9.set('region color Red')
 for i in range(len(p)):
-    ds9.set("region command {cross point " + str(p[i]) + " " + str(q[i]) + " }")
+    ds9.set("region command {cross point " + str(r[i]) + " " + str(t[i]) + " }")
     ds9.set('region select all')
     ds9.set('region color Red')
 

@@ -194,7 +194,7 @@ def explore_and_graph(names, ceros, stop, fwhm, thresh, max_sep):
 
 
 names = ('weighted', 'UNCOVER_DR2_LW_SUPER_catalog', 'Images/A2744_F356W')
-ceros = np.array([[(5280, 9455), (4303, 10045)], [(3410, 4138), (1045, 1688)]])
+ceros = np.array([[(4303, 10045), (5280, 9455)], [(4477, 5103), (76, 668)]])
 fwhm = 3.5
 thresh = 1.2
 stop = 0.005
