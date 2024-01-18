@@ -4,13 +4,13 @@ import numpy as np
 # Cut images by input and combine filters with weight
 
 
-def cutting_images(column, line, filters):
+def cutting_images(line, column, filters):
 
     images = []
     weights = []
 
     for i in filters:
-        im, im_wht = cut(column, line, i)
+        im, im_wht = cut(line, column, i)
         images.append(im)
         weights.append(im_wht)
 
@@ -29,7 +29,6 @@ def cut(x, y, name):
     Output: cropped image"""
     filename = str(name) + '.fits'
     weight_filename = str(name) + '_wht' + '.fits'
-
     hdu = fits.open(filename)[0]
     image = hdu.data[x[0]:x[1], y[0]:y[1]]
 
