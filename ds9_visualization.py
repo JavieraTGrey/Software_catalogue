@@ -72,3 +72,5 @@ for i in range(len(p)):
 
 for i in range(len(n)):
     ds9.set("region command {circle " + str(n[i]) + " " + str(o[i]) + " 2}")
+
+ds9.set('frame lock physical')
