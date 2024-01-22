@@ -20,7 +20,7 @@ def gaussian(x, amplitude, mean, std_dev):
     return amplitude * np.exp(-(x - mean)**2 / (2 * std_dev**2))
 
 
-def bkg_estimate(data, init, stop, bkg_func=None):
+def bkg_estimate(data, init, stop, bkg_func=gaussian):
     """Estimate background using a provided function.
 
     INPUT:
@@ -41,7 +41,8 @@ def bkg_estimate(data, init, stop, bkg_func=None):
                                    bins=np.linspace(init, stop, 300))
 
     # Fit background function to the histogram
-    params, _ = curve_fit(bkg_func, bins[:-1], hist_data,  maxfev=5000)
+    p0 = (np.max(hist_data), 0, 1)
+    params, _ = curve_fit(bkg_func, bins[:-1], hist_data, p0=p0, maxfev=5000)
     return params
 
 
@@ -141,29 +142,6 @@ def detection(path, init, stop, fwhm, thresh,
 
 fwhm = 3.5
 init = -5
-stop = 1
+stop = 0.8
 thresh = 1.2
 # objects, std_dv = detection('weighted.fits', init, stop, fwhm, thresh)
-
-# TO-CHECK
-
-# weighted = fits.getdata('weighted.fits')
-# import pyds9
-# import matplotlib.pyplot as plt
-# plt.hist(weighted.flatten(), bins=np.linspace(-5, 2.5, 100))
-# plt.hist(weighted.flatten(), bins=np.linspace(-5, 1, 100))
-
-
-# ds9 = pyds9.DS9()
-# weighted = fits.getdata('weighted.fits')
-# ds9.set_np2arr(weighted)
-# ds9.set("scale log")
-# ds9.set('scale limits 0 10')
-# ds9.set("zoom to fit")
-
-# for i in range(len(objects['x'])):
-#     ds9.set("region command {cross point " + str(objects['x'][i]) + " " + str(objects['y'][i]) + " }")
-#     ds9.set('region select all')
-#     ds9.set('region color Red')
-# ----------
-# Trying with CEERS DATA
