@@ -1,7 +1,6 @@
 from astropy.io import fits
 import astropy.units as u
 from catalog_comparison import explore_square
-from weight_images import cut
 import numpy as np
 import matplotlib.pyplot as plt
 import sep
@@ -31,7 +30,8 @@ weighted_err = fits.getdata('weighted_err.fits')
 photwht = weighted_err[76:655, 4477:5095]
 
 # encuentro photerr
-photerr = np.where((photwht == 0) | np.isnan(photwht), np.inf, 1./np.sqrt(photwht))
+photerr = np.where((photwht == 0) | np.isnan(photwht),
+                   np.inf, 1./np.sqrt(photwht))
 photerr[~np.isfinite(photerr)] = np.median(photerr[np.isfinite(photerr)])
 
 # recorto a cuadrito en weightes
