@@ -108,7 +108,7 @@ def get_square_on_image(detcoord, realcoord, first_cero, second_cero, wcs_wrd):
     d_column_sq, d_line_sq = square_cut(d_column_w, d_line_w, select_sq)
     r_column_sq, r_line_sq = square_cut(r_column_w, r_line_w, select_sq)
 
-    #Changes zero from the square to (0,0)
+    # Changes zero from the square to (0,0)
     r_object_square = r_column_sq, r_line_sq
     d_object_square = d_column_sq, d_line_sq
     r_column_sq, r_line_sq = offset(second_cero, r_object_square, '-')
@@ -129,13 +129,13 @@ def get_data(weighted_image, catalog_fits, example_filter):
     return weighted, real, wcs_world, weighted_image
 
 
-def explore_square(names, ceros, init, stop, fwhm, thresh, max_sep):
+def explore_square(names, ceros, init, stop, fwhm, thresh, max_sep, detec_func=detection):
     weighted, catalog, filter_example = names
     weighted, real, wcs_world, weighted_image = get_data(weighted, catalog, filter_example)
 
     weighted_cero, square_cero = ceros
 
-    objects, std_dv = detection(weighted_image + '.fits', init, stop, fwhm, thresh)
+    objects, std_dv = detec_func(weighted_image + '.fits', init, stop, fwhm, thresh)
     objects = objects['x'], objects['y']
     detec = offset(weighted_cero, objects, '+')
 
