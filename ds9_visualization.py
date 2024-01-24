@@ -15,8 +15,8 @@ a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv = explore_squar
 
 over = a, b, c, d
 under = e, f, g, h
-unmatched = j, k, n, o
-all_detec = p, q, r, t
+all_detec = j, k, n, o
+unmatched = p, q, r, t
 
 # Open a connection to DS9
 ds9 = pyds9.DS9()
