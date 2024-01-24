@@ -2,6 +2,7 @@ from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel
 import numpy as np
 from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
 import sep
 
 
@@ -145,3 +146,9 @@ init = -5
 stop = 0.8
 thresh = 1.2
 # objects, std_dv = detection('weighted.fits', init, stop, fwhm, thresh)
+# weighted = fits.getdata('weighted.fits')
+# params = bkg_estimate(weighted, init, stop)
+# hist_data, bins = np.histogram(weighted.flatten(),
+#                                bins=np.linspace(init, stop, 300))
+# plt.plot(bins[:-1], gaussian(bins[:-1], *params), color='red')
+# plt.hist(weighted.flatten(), bins=np.linspace(init, stop, 300))
