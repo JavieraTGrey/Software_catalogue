@@ -72,7 +72,7 @@ def combined_images(images, weights):
             del raw_img
 
     # Optimal average
-    optavg = np.where((dem == 0.) | (np.isnan(dem) is True), 0., num / dem)
+    optavg = np.where((dem == 0.) | np.isnan(dem), 0., num / dem)
     # Optimal error
     opterr = np.sqrt(np.where((dem <= 0) | (np.isnan(dem) is True), 0., 1. / dem))
 
