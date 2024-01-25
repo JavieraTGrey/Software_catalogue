@@ -19,8 +19,8 @@ a, b, c, d, e, f, g, h, j, k, n, o, p, q, r, t, weighted, std_dv = explore_squar
 # ordenado como matched = UNCOVER(0, 1), TOR(0, 1)
 matched = c, d
 unmatched_TOR = g, h
-unmatched_UN = n, o
-
+unmatched_UN = r, t
+all_detec = n, o
 
 # Abro weighted
 ceros = np.array([[(4303, 10045), (5280, 9455)], [(4477, 5095), (76, 655)]])
@@ -54,9 +54,15 @@ def SNR(flux, flux_err):
 
 flux_unmatch_TOR, fluxerr_unmatch_TOR, _ = circular_aperture(weighted, g, h, 2)
 flux_matched, fluxerr_matched, _ = circular_aperture(weighted, c, d, 2)
+flux_All, fluxerr_All, _ = circular_aperture(weighted, n, o, 2)
 
 SNR_TOR = SNR(flux_unmatch_TOR, fluxerr_unmatch_TOR)
 SNR_matched = SNR(flux_matched, fluxerr_matched)
+SNR_all = SNR(flux_All, fluxerr_All)
 
 plt.hist(SNR_matched, bins=np.linspace(0, 100, 30), alpha=0.5)
 plt.hist(SNR_TOR, bins=np.linspace(0, 100, 60), alpha=0.5)
+
+# NOW SELECT ONLY THE SOURCES WITH OVER 1.7 SNR
+mask = SNR_all > 1.7
+column_selected, line_selected = n[mask], o[mask]
