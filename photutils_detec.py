@@ -43,13 +43,13 @@ finder = SourceFinder(npixels=minarea, deblend=True, nlevels=32,
                       contrast=deblend_count, progress_bar=True)
 segm = finder(convolved_data, thresh*std_dv)
 
-# fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12.5))
-# ax1.imshow(data, origin='lower', cmap='Greys_r',
-#            vmin=-std_dv, vmax=15*std_dv)
-# ax1.set_title('Background-subtracted Data')
-# ax2.imshow(segm.data, origin='lower', cmap=segm.cmap,
-#            interpolation='nearest')
-# ax2.set_title('Segmentation Image')
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12.5))
+ax1.imshow(data, origin='lower', cmap='Greys_r',
+           vmin=-std_dv, vmax=15*std_dv)
+ax1.set_title('Background-subtracted Data')
+ax2.imshow(segm.data, origin='lower', cmap=segm.cmap,
+           interpolation='nearest')
+ax2.set_title('Segmentation Image')
 
 
 # Catalog
