@@ -3,6 +3,17 @@ import numpy as np
 
 
 def noise_equalize(filters, outname, **kwargs):
+    """
+    Create noise equalized image from one or numerous astronomical
+    images provided.
+    INPUT: filters: String tuple of path to astronomical images
+           outname: String name for the output file
+           kwargs: line: Line coordinates for cutting images in physical
+                         coordinates (optional)
+                   column: Column coordinates for cutting images in physical
+                           coordinates (optional)
+    OUTPUT: Noise equalized image and optimal error image
+    """
     line = kwargs.get('line', None)
     column = kwargs.get('column', None)
 
@@ -12,7 +23,7 @@ def noise_equalize(filters, outname, **kwargs):
     for i in filters:
         im, im_wht = read_data(i, x=line, y=column)
         images.append(im)
-        weights.append(im_wht)  
+        weights.append(im_wht)
 
     comb, opterr = combined_images(images, weights)
 
@@ -35,11 +46,13 @@ def noise_equalize(filters, outname, **kwargs):
 
 
 def read_data(name, **kwargs):
-    """Receives coordinates to select a square in a FITS file.
-    Input:  X: tuple of x-coordinate values
-            Y: tuple of y-coordinate values
-            name: file name
-    Output: cropped image"""
+    """Reads fits file and cut the data if provided image limits
+    Input:  name: Name for the output file
+            kwargs : x: Line coordinates for cutting images in physical
+                        coordinates (optional)
+                     y: Column coordinates for cutting images in physical
+                        coordinates (optional)
+    Output: data, data_weights"""
     
     filename = str(name) + '.fits'
     weight_filename = str(name) + '_wht' + '.fits'
